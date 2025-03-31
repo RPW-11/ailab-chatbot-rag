@@ -3,3 +3,8 @@ langchain
 langchain_ollama
 sentence-transformers
 uvicorn
+pydantic
+pydantic-settings
+qdrant-client
+python-multipart
+unstructured[docx,pdf,pptx,txt]
