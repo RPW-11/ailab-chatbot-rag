@@ -11,8 +11,3 @@ class IndexDocumentRequestSchema(BaseModel):
         document_ids: List[str] = Form(...),
     ):
         return cls(document_ids=document_ids)
-
-
-
-class DeleteDocumentPointsSchema(BaseModel):
-    document_ids: List[str]

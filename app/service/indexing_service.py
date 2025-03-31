@@ -52,3 +52,14 @@ class IndexingService:
             ]
             await self.indexing_repository.upsert_points(points)
             print(f"Indexed document: {document_id} with {len(points)} points.")
+
+    async def delete_document(self, document_id: str) -> None:
+        """
+        Delete documents from the vector database.
+        """
+        if not document_id:
+            raise HTTPException(400, "No document IDs provided.")
+        
+        await self.indexing_repository.delete_point_by_document_id(document_id)
+
+        print(f"Deleted points for document ID: {document_id}")

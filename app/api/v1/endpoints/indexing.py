@@ -16,3 +16,12 @@ async def index_documents(
 ):
     await indexing_service.insert_documents(document_body, document_files)
     return {"message": "Documents indexed successfully."}
+
+
+@router.delete("/documents/{document_id}", status_code=204)
+async def delete_document(
+    document_id: str, 
+    indexing_service: IndexingService = Depends()
+):
+    await indexing_service.delete_document(document_id)
+    return {"message": "Document deleted successfully."}

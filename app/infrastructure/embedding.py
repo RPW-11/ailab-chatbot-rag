@@ -8,6 +8,7 @@ async def get_embedding_model() -> SentenceTransformer:
     global _embedding_model
 
     if _embedding_model is None:
+        print("Loading embedding model...")
         _embedding_model = SentenceTransformer(settings.EMBEDDING_MODEL_NAME, trust_remote_code=True)
     
     return _embedding_model

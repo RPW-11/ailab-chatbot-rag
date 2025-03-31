@@ -8,6 +8,7 @@ async def get_qdrant_client() -> AsyncQdrantClient:
     global _client
     
     if _client is None:
+        print("Initializing Qdrant client...")
         _client = AsyncQdrantClient(
             url=settings.QDRANT_HOST,
             prefer_grpc=True,
