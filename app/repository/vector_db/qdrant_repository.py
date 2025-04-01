@@ -6,20 +6,22 @@ from typing import List, Dict, Optional, Any
 from .base_repository import VectorDBRepository
 from app.config import settings
 from app.infrastructure.qdrant import get_qdrant_client
+from app.schema.indexing_schema import PointSchema
+
 
 class QdrantRepository(VectorDBRepository):
     def __init__(self, client: AsyncQdrantClient = Depends(get_qdrant_client)):
         self.client = client
         self.collection_name = settings.QDRANT_COLLECTION_NAME
 
-    async def upsert_points(self, points: List[Dict[str, Any]]) -> None:
+    async def upsert_points(self, points: List[PointSchema]) -> None:
         await self.client.upsert(
             collection_name=self.collection_name,
             points=[
                 models.PointStruct(
-                    id=point["id"],
-                    vector=point["vector"],
-                    payload=point.get("payload", {}),
+                    id=point.id,
+                    vector=point.vector,
+                    payload=point.payload.model_dump(exclude_none=True),
                 )
                 for point in points
             ],
@@ -43,7 +45,7 @@ class QdrantRepository(VectorDBRepository):
         query_vector: List[float],
         filter: Optional[Dict[str, Any]] = None,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[PointSchema]:
         search_filter = None
 
         if filter:

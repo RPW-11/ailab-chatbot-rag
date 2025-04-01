@@ -7,7 +7,7 @@ from sentence_transformers import SentenceTransformer
 from app.infrastructure.embedding import get_embedding_model
 from app.repository.vector_db.base_repository import VectorDBRepository
 from app.repository.vector_db.qdrant_repository import QdrantRepository
-from app.schema.indexing_schema import IndexDocumentRequestSchema
+from app.schema.indexing_schema import IndexDocumentRequestSchema, PointSchema, PointPayloadSchema
 from app.util.indexing_util import validate_document_type
 
 class IndexingService:
@@ -30,7 +30,7 @@ class IndexingService:
         if len(document_body.document_ids) != len(document_files):
             raise HTTPException(400, "Mismatch between document IDs and document files.")
         if not validate_document_type(document_files):
-            raise HTTPException(400, "Invalid document types. Only PDF, DOCX, and TXT are allowed.")
+            raise HTTPException(400, "Invalid document types. Only PDF, DOCX, TXT and IMAGES are allowed.")
         
         for document_file, document_id in zip(document_files, document_body.document_ids):
             file_io = BytesIO(await document_file.read())
@@ -39,16 +39,18 @@ class IndexingService:
             elements = partition(file=file_io, strategy="auto")
             embeddings = self.embedding_model.encode([element.text for element in elements], show_progress_bar=True)
             points = [
-                {
-                    "id": str(uuid4()),
-                    "vector": embedding,
-                    "payload": {
-                        "document_id": document_id,
-                        "text": element.text,
-                        "metadata": element.metadata.to_dict(),
-                    },
-                }
-                for i, (embedding, element) in enumerate(zip(embeddings, elements))
+                PointSchema(
+                    id=str(uuid4()),
+                    vector=embedding,
+                    payload=PointPayloadSchema(
+                        document_id=document_id,
+                        text=element.text,
+                        type='text',
+                        page_number=element.metadata.page_number,
+                        document_url=document_file.filename,
+                    ),
+                )
+                for embedding, element in zip(embeddings, elements)
             ]
             await self.indexing_repository.upsert_points(points)
             print(f"Indexed document: {document_id} with {len(points)} points.")

@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional, Any
+from app.schema.indexing_schema import PointSchema
+
 
 class VectorDBRepository(ABC):
     @abstractmethod
-    async def upsert_points(self, points: List[Dict[str, Any]]) -> None:
+    async def upsert_points(self, points: List[PointSchema]) -> None:
         """
         Upsert points into the collection.
         """
@@ -22,7 +24,7 @@ class VectorDBRepository(ABC):
         query_vector: List[float],
         filter: Optional[Dict[str, Any]] = None,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[PointSchema]:
         """
         Search for points in the collection.
         """
