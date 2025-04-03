@@ -12,7 +12,7 @@ async def get_qdrant_client() -> AsyncQdrantClient:
         _client = AsyncQdrantClient(
             url=settings.QDRANT_HOST,
             prefer_grpc=True,
-            grpc_port=6334,
+            grpc_port=settings.QDRANT_GRPC_PORT,
             api_key=settings.QDRANT_API_KEY,
         )
         try:
@@ -26,6 +26,7 @@ async def get_qdrant_client() -> AsyncQdrantClient:
             raise ConnectionError(f"Qdrant connection failed: {str(e)}")
     
     return _client 
+
 
 async def close_qdrant_client():
     """Cleanup for application shutdown"""

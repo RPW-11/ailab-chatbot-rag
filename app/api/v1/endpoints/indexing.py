@@ -3,6 +3,7 @@ from typing import List
 from app.service.indexing_service import IndexingService
 from app.schema.indexing_schema import IndexDocumentRequestSchema
 
+
 router = APIRouter(
     prefix="/indexing",
     tags=["indexing"],

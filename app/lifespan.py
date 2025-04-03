@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.infrastructure import load_infrastructure
+from app.infrastructure import load_infrastructure, unload_infrastructure
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -12,5 +12,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    await unload_infrastructure()
+    
     # Cleanup code can be added here if needed
     print("Application shutting down...")

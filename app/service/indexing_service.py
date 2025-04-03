@@ -10,14 +10,15 @@ from app.repository.vector_db.qdrant_repository import QdrantRepository
 from app.schema.indexing_schema import IndexDocumentRequestSchema, PointSchema, PointPayloadSchema
 from app.util.indexing_util import validate_document_type
 
+
 class IndexingService:
     def __init__(
         self, 
-        indexing_repository: VectorDBRepository = Depends(QdrantRepository),
+        vdb_repository: VectorDBRepository = Depends(QdrantRepository),
         embedding_model: SentenceTransformer = Depends(get_embedding_model)
     ):
-        self.indexing_repository = indexing_repository
-        self.embedding_model = embedding_model
+        self._vdb_repository = vdb_repository
+        self._embedding_model = embedding_model
 
     async def insert_documents(self, document_body: IndexDocumentRequestSchema, document_files: List[UploadFile]) -> None:
         """
@@ -37,7 +38,7 @@ class IndexingService:
             await document_file.close()
             print(f"Processing document: {document_id}")
             elements = partition(file=file_io, strategy="auto")
-            embeddings = self.embedding_model.encode([element.text for element in elements], show_progress_bar=True)
+            embeddings = self._embedding_model.encode([element.text for element in elements], show_progress_bar=True)
             points = [
                 PointSchema(
                     id=str(uuid4()),
@@ -52,7 +53,7 @@ class IndexingService:
                 )
                 for embedding, element in zip(embeddings, elements)
             ]
-            await self.indexing_repository.upsert_points(points)
+            await self._vdb_repository.upsert_points(points)
             print(f"Indexed document: {document_id} with {len(points)} points.")
 
     async def delete_document(self, document_id: str) -> None:
@@ -62,6 +63,6 @@ class IndexingService:
         if not document_id:
             raise HTTPException(400, "No document IDs provided.")
         
-        await self.indexing_repository.delete_point_by_document_id(document_id)
+        await self._vdb_repository.delete_point_by_document_id(document_id)
 
         print(f"Deleted points for document ID: {document_id}")

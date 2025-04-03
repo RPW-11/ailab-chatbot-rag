@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     # Qdrant settings
     QDRANT_HOST: str = "localhost:6333"
     QDRANT_API_KEY: str = ""
+    QDRANT_GRPC_PORT: int = 6334
     QDRANT_COLLECTION_NAME: str = "dev-chatbot-collection"
 
 
