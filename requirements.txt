@@ -8,3 +8,5 @@ pydantic-settings
 qdrant-client
 python-multipart
 unstructured[docx,pdf,pptx,txt]
+unstructured.pytesseract
+hf_xet

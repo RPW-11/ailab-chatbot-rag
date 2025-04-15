@@ -5,7 +5,7 @@ from .llm_interface import LLM
 
 class Ollama(LLM):
     def __init__(self):
-        self._model = OllamaLLM(model='deepseek-v2')
+        self._model = OllamaLLM(model='mistral')
         
     async def change_model(self, model_name):
         self._model = OllamaLLM(model=model_name)

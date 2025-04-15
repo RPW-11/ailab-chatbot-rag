@@ -6,7 +6,7 @@ from typing import List, Dict, Optional, Any
 from .base_repository import VectorDBRepository
 from app.config import settings
 from app.infrastructure.qdrant import get_qdrant_client
-from app.schema.indexing_schema import PointSchema
+from app.schema.indexing_schema import PointSchema, PointPayloadSchema
 
 
 class QdrantRepository(VectorDBRepository):
@@ -47,7 +47,7 @@ class QdrantRepository(VectorDBRepository):
         limit: int = 10,
     ) -> List[PointSchema]:
         search_filter = None
-
+        
         if filter:
             search_filter = models.Filter(
                 must=[
@@ -59,19 +59,27 @@ class QdrantRepository(VectorDBRepository):
                 ]
             )
         
-        results = await self.client.search(
+        results = await self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_vector,
-            filter=search_filter,
+            query=query_vector[0],
+            query_filter=search_filter,
+            with_payload=True,
             limit=limit,
         )
         
         return [
-            {
-                "id": point.id,
-                "score": point.score,
-                "payload": point.payload,
-            }
-            for point in results
+            PointSchema(
+                id=point.id,
+                vector=[],
+                payload=PointPayloadSchema(
+                    document_id=point.payload['document_id'],
+                    text=point.payload['text'],
+                    type=point.payload['type'],
+                    page_number=point.payload['page_number'],
+                    img_url=point.payload['img_url'] if 'img_url' in point.payload.keys() else '',
+                    document_url=point.payload['document_url'] if 'document_url' in point.payload.keys() else ''
+                )
+            )
+            for point in results.points
         ]
         

@@ -16,5 +16,5 @@ async def get_index():
 async def infer(
     inferece_body: InferenceRequestSchema,
     inference_service: InferenceService = Depends()
-    ):
+):
     return await inference_service.infer(inferece_body)

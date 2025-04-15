@@ -1,5 +1,6 @@
 from fastapi import Depends, UploadFile, HTTPException
 from unstructured.partition.auto import partition
+from unstructured.chunking.title import chunk_by_title
 from typing import List
 from io import BytesIO
 from uuid import uuid4
@@ -37,21 +38,26 @@ class IndexingService:
             file_io = BytesIO(await document_file.read())
             await document_file.close()
             print(f"Processing document: {document_id}")
-            elements = partition(file=file_io, strategy="auto")
-            embeddings = self._embedding_model.encode([element.text for element in elements], show_progress_bar=True)
+            elements = partition(file=file_io, strategy="auto", languages=["en", "zh"], skip_infer_table_types=[])
+            chunks = chunk_by_title(
+                elements,
+                max_characters=1024, 
+                combine_text_under_n_chars=200,
+            )
+            embeddings = self._embedding_model.encode([chunk.text for chunk in chunks], show_progress_bar=True)
             points = [
                 PointSchema(
                     id=str(uuid4()),
                     vector=embedding,
                     payload=PointPayloadSchema(
                         document_id=document_id,
-                        text=element.text,
+                        text=chunk.text,
                         type='text',
-                        page_number=element.metadata.page_number,
+                        page_number=chunk.metadata.page_number,
                         document_url=document_file.filename,
                     ),
                 )
-                for embedding, element in zip(embeddings, elements)
+                for embedding, chunk in zip(embeddings, chunks)
             ]
             await self._vdb_repository.upsert_points(points)
             print(f"Indexed document: {document_id} with {len(points)} points.")
